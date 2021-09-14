@@ -116,7 +116,7 @@ class TrainView : public Fl_Gl_Window
 
 		void drawTiles(glm::vec4 plane, bool reflection);
 
-		void drawSineWave();
+		void drawSineWave(bool reflection);
 
 		void drawHeightMapWave();
 

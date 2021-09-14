@@ -236,16 +236,14 @@ void TrainView::draw()
 	glEnable(GL_CLIP_DISTANCE0);
 
 	this->waterFrameBuffers->bindReflectionFrameBuffer();
+	float distance = 2 * (arcball.getPosition().y - 0.6f);	
 	draw(glm::vec4(0.0f, 1.0f, 0.0f, -0.6f * 100.0f), true);
-	
+
 	this->waterFrameBuffers->bindRefractionFrameBuffer();	
 	draw(glm::vec4(0.0f, -1.0f, 0.0f, 0.6f * 100.0f), false);
 
 	glDisable(GL_CLIP_DISTANCE0);
 	this->waterFrameBuffers->unbindCurrentFrameBuffer();
-
-	//glViewport(1, 1, 200, 200);
-
 	
 	draw(glm::vec4(0.0f, -1.0f, 0.0f, 0.6f * 100.0f), false);
 }
@@ -356,7 +354,7 @@ draw(glm::vec4 plane, bool reflection)
 
 	//draw water
 	if (tw->waveBrowser->value() == 1)
-		drawSineWave();
+		drawSineWave(reflection);
 	else if (tw->waveBrowser->value() == 2)
 		drawHeightMapWave();
 }
@@ -1271,7 +1269,7 @@ drawTiles(glm::vec4 plane, bool reflection)
 }
 
 void TrainView::
-drawSineWave()
+drawSineWave(bool reflection)
 {
 	glEnable(GL_BLEND);
 
@@ -1295,24 +1293,23 @@ drawSineWave()
 	this->sineWaveTexture->bind(0);
 	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "u_texture"), 0);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getReflectionTexture());
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "reflectionTexture"), 0);
-
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getRefractionTexture());
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "refractionTexture"), 1);
+	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getReflectionTexture());
+	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "reflectionTexture"), 1);
 
 	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getRefractionTexture());
+	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "refractionTexture"), 2);
+
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getRefractionDepthTexture());
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "depthMap"), 2);
+	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "depthMap"), 3);
 
-	this->dudvTexture->bind(1);
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "dudvMap"), 1);
+	this->dudvTexture->bind(4);
+	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "dudvMap"), 4);
 
-	this->normalMap->bind(2);
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "normalMap"), 2);
-
+	this->normalMap->bind(5);
+	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "normalMap"), 5);
 
 	this->moveFactor += this->WAVE_SPEED * t_time;
 	this->moveFactor /= 1.0f;
@@ -1382,21 +1379,21 @@ drawHeightMapWave()
 	glDrawElements(GL_TRIANGLES, this->heightMap->element_amount, GL_UNSIGNED_INT, 0);
 
 	//draw drops
-	//for (int i = 0; i < allDrop.size(); ++i)
-	//{
-	//	if (t_time - allDrop[i].time > allDrop[i].keepTime)
-	//	{
-	//		allDrop.erase(allDrop.begin() + i);
-	//		--i;
-	//		continue;
-	//	}
-	//
-	//	glUniform2f(glGetUniformLocation(this->heightMapShader->Program, "dropPoint"), allDrop[i].point.x, allDrop[i].point.y);
-	//	glUniform1f(glGetUniformLocation(this->heightMapShader->Program, "dropTime"), allDrop[i].time);
-	//	glUniform1f(glGetUniformLocation(this->heightMapShader->Program, "interactiveRadius"), allDrop[i].radius);
-	//
-	//	glDrawElements(GL_TRIANGLES, this->heightMap->element_amount, GL_UNSIGNED_INT, 0);
-	//}	
+	for (int i = 0; i < allDrop.size(); ++i)
+	{
+		if (t_time - allDrop[i].time > allDrop[i].keepTime)
+		{
+			allDrop.erase(allDrop.begin() + i);
+			--i;
+			continue;
+		}
+	
+		glUniform2f(glGetUniformLocation(this->heightMapShader->Program, "dropPoint"), allDrop[i].point.x, allDrop[i].point.y);
+		glUniform1f(glGetUniformLocation(this->heightMapShader->Program, "dropTime"), allDrop[i].time);
+		glUniform1f(glGetUniformLocation(this->heightMapShader->Program, "interactiveRadius"), allDrop[i].radius);
+	
+		glDrawElements(GL_TRIANGLES, this->heightMap->element_amount, GL_UNSIGNED_INT, 0);
+	}	
 
 	//unbind VAO
 	glBindVertexArray(0);	

@@ -67,7 +67,7 @@ void main()
         v_out.position = p;
         v_out.normal = mat3(transpose(inverse(u_model))) * n_normal;
         v_out.texture_coordinate = vec2(texture_coordinate.x, 1.0f - texture_coordinate.y) * tiling;
-        v_out.toCameraVector = cameraPosition - worldPosition.xyz;
+        v_out.toCameraVector = cameraPosition.xyz - worldPosition.xyz;
         v_out.fromLightVector = worldPosition.xyz - lightPosition;
     }
 }

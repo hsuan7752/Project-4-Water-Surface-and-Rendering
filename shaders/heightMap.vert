@@ -38,7 +38,7 @@ out V_OUT
 void main()
 {
     vec3 heightMap = position;
-    float tempHeight = (texture(u_texture, texture_coordinate / wavelength).r - 0.5f) * amplitude;
+    float tempHeight = (texture(u_texture, v_out.texture_coordinate / wavelength).r - 0.5f) * amplitude;
     float tempInteractive = 0.0f;
     if(dropPoint.x > 0.0f)
     {        
