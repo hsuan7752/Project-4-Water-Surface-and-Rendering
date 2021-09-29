@@ -1,4 +1,4 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      /************************************************************************
+/************************************************************************
      File:        TrainView.H
      Author:     
                   Michael Gleicher, gleicher@cs.wisc.edu
@@ -112,6 +112,8 @@ class TrainView : public Fl_Gl_Window
 
 		void initHeightMapShader();
 
+		void initPlaneShader();
+
 		void drawSkyBox(bool reflection);
 
 		void drawTiles(glm::vec4 plane, bool reflection);
@@ -121,6 +123,8 @@ class TrainView : public Fl_Gl_Window
 		void drawHeightMapWave();
 
 		void addDrop(float radius, float keepTime);
+
+		void drawPlane();
 	public:
 		ArcBallCam		arcball;			// keep an ArcBall for the UI
 		int				selectedCube;  // simple - just remember which cube is selected
@@ -158,6 +162,10 @@ class TrainView : public Fl_Gl_Window
 		Texture2D* normalMap = nullptr;
 		Texture2D* depthMap = nullptr;
 
+		Shader* planeShader = nullptr;
+		VAO* n_plane = nullptr;
+		Texture2D* planeTexture = nullptr;
+
 		//OpenAL
 		glm::vec3 source_pos;
 		glm::vec3 listener_pos;
@@ -186,4 +194,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int interactiveRenderBuffer;
 		unsigned int interactiveQuadVAO;
 		unsigned int interactiveQuadVBO;
+
+	public:
+		GLfloat* inverse(GLfloat* m);
 };

@@ -222,6 +222,9 @@ void TrainView::draw()
 		if (!this->waterFrameBuffers)
 			this->waterFrameBuffers = new WaterFrameBuffers();
 
+		if (!this->planeShader)
+			this->initPlaneShader();
+
 		if (!this->commom_matrices)
 			this->commom_matrices = new UBO();
 		this->commom_matrices->size = 2 * sizeof(glm::mat4);
@@ -236,7 +239,8 @@ void TrainView::draw()
 	glEnable(GL_CLIP_DISTANCE0);
 
 	this->waterFrameBuffers->bindReflectionFrameBuffer();
-	float distance = 2 * (arcball.getPosition().y - 0.6f);	
+	//float distance = 2 * (arcball.getPosition().y - 0.6f);	
+	//gluLookAt(arcball.getPosition().x, arcball.getPosition().y - distance, arcball.getPosition().z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	draw(glm::vec4(0.0f, 1.0f, 0.0f, -0.6f * 100.0f), true);
 
 	this->waterFrameBuffers->bindRefractionFrameBuffer();	
@@ -346,8 +350,7 @@ draw(glm::vec4 plane, bool reflection)
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
-	//draw skybox
-	drawSkyBox(reflection);
+	
 
 	//draw tiles
 	drawTiles(plane, reflection);
@@ -357,6 +360,11 @@ draw(glm::vec4 plane, bool reflection)
 		drawSineWave(reflection);
 	else if (tw->waveBrowser->value() == 2)
 		drawHeightMapWave();
+
+	//drawPlane();
+
+	//draw skybox
+	drawSkyBox(reflection);
 }
 
 //************************************************************************
@@ -658,10 +666,10 @@ initTilesShader()
 		-1.0f, -1.0f, -1.0f,
 
 		//up
-		- 1.0f, 0.6f, 1.0f,
-		1.0f, 0.6f, 1.0f,
-		1.0f, 0.6f, -1.0f,
-		-1.0f, 0.6f, -1.0f
+		//- 1.0f, 0.6f, 1.0f,
+		//1.0f, 0.6f, 1.0f,
+		//1.0f, 0.6f, -1.0f,
+		//-1.0f, 0.6f, -1.0f
 	};
 	GLfloat  normal[] = {
 		//back
@@ -695,10 +703,10 @@ initTilesShader()
 		0.0f, -1.0f, 0.0f,
 
 		//up
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f
+		//0.0f, 1.0f, 0.0f,
+		//0.0f, 1.0f, 0.0f,
+		//0.0f, 1.0f, 0.0f,
+		//0.0f, 1.0f, 0.0f
 	};
 	GLfloat  texture_coordinate[] = {
 		1.0f, 1.0f,
@@ -726,10 +734,10 @@ initTilesShader()
 		0.0f, 0.0f,
 		1.0f, 0.0f,
 
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f,
+		//1.0f, 1.0f,
+		//0.0f, 1.0f,
+		//0.0f, 0.0f,
+		//1.0f, 0.0f,
 	};
 	GLuint element[] = {
 		//back
@@ -833,10 +841,10 @@ initWaterShader()
 		-1.0f, -1.0f, -1.0f,
 
 		//up
-		-1.0f, 0.6f, 1.0f,
-		1.0f, 0.6f, 1.0f,
-		1.0f, 0.6f, -1.0f,
-		-1.0f, 0.6f, -1.0f
+		//-1.0f, 0.6f, 1.0f,
+		//1.0f, 0.6f, 1.0f,
+		//1.0f, 0.6f, -1.0f,
+		//-1.0f, 0.6f, -1.0f
 	};
 	GLfloat  normal[] = {
 		//back
@@ -870,10 +878,10 @@ initWaterShader()
 		0.0f, -1.0f, 0.0f,
 
 		//up
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f
+		//0.0f, 1.0f, 0.0f,
+		//0.0f, 1.0f, 0.0f,
+		//0.0f, 1.0f, 0.0f,
+		//0.0f, 1.0f, 0.0f
 	};
 
 	GLfloat  texture_coordinate[] = {
@@ -925,8 +933,8 @@ initWaterShader()
 		19, 18, 17,
 
 		//up
-		21, 20, 23,
-		23, 22, 21
+		//21, 20, 23,
+		//23, 22, 21
 	};
 
 	this->water = new VAO;
@@ -963,15 +971,15 @@ initWaterShader()
 	glBindVertexArray(0);
 
 	if (!this->waterTexture)
-		this->waterTexture = new Texture2D(PROJECT_DIR "/Images/tiles.jpg");
+		this->waterTexture = new Texture2D(PROJECT_DIR "/Images/church.png");
 }
 
 void TrainView::
 initSineWaveShader()
 {
-	this->sineWaveShader = new Shader(PROJECT_DIR "/src/shaders/sineWave.vert",
+	this->sineWaveShader = new Shader(PROJECT_DIR "/src/shaders/cubemaps.vert",
 										nullptr, nullptr, nullptr,
-										PROJECT_DIR "/src/shaders/sineWave.frag");
+										PROJECT_DIR "/src/shaders/cubemaps.frag");
 
 	float size = 0.01f;
 	unsigned int width = 2.0f / size;
@@ -1070,12 +1078,12 @@ initSineWaveShader()
 	// Unbind VAO
 	glBindVertexArray(0);
 
-	if (!this->sineWaveTexture)
-		this->sineWaveTexture = new Texture2D(PROJECT_DIR "/Images/tiles.jpg");
-	if (!this->dudvTexture)
-		this->dudvTexture = new Texture2D(PROJECT_DIR "/Images/waterDUDV.png");
-	if (!this->normalMap)
-		this->normalMap = new Texture2D(PROJECT_DIR "/Images/normalMap.png");
+	//if (!this->sineWaveTexture)
+	//	this->sineWaveTexture = new Texture2D(PROJECT_DIR "/Images/tiles.jpg");
+	//if (!this->dudvTexture)
+	//	this->dudvTexture = new Texture2D(PROJECT_DIR "/Images/waterDUDV.png");
+	//if (!this->normalMap)
+	//	this->normalMap = new Texture2D(PROJECT_DIR "/Images/normalMap.png");
 }
 
 void TrainView::
@@ -1195,8 +1203,80 @@ initHeightMapShader()
 		this->heightMapTexture.push_back(Texture2D (("Images/waves5/" + name + ".png").c_str()));
 	}
 
-	if (!this->sineWaveTexture)
-		this->sineWaveTexture = new Texture2D(PROJECT_DIR "/Images/tiles.jpg");
+	//if (!this->sineWaveTexture)
+	//	this->sineWaveTexture = new Texture2D(PROJECT_DIR "/Images/tiles.jpg");
+}
+
+void TrainView::
+initPlaneShader()
+{
+	this->planeShader = new Shader{ PROJECT_DIR "/src/shaders/simple.vert",
+										nullptr, nullptr, nullptr,
+										PROJECT_DIR "/src/shaders/simple.frag" };
+
+	GLfloat vertices[] = {
+		//down
+		-1.0f, 2.0f, 1.0f,
+		1.0f, 2.0f, 1.0f,
+		1.0f, 2.0f, -1.0f,
+		-1.0f, 2.0f, -1.0f,
+	};
+	GLfloat  normal[] = {
+		//down
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+	};
+
+	GLfloat  texture_coordinate[] = {
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+	};
+
+	GLuint element[] = {
+		//back
+		1, 0, 3,
+		3, 2, 1,
+	};
+
+	this->n_plane = new VAO;
+	this->n_plane->element_amount = sizeof(element) / sizeof(GLuint);
+	glGenVertexArrays(1, &this->n_plane->vao);
+	glGenBuffers(3, this->n_plane->vbo);
+	glGenBuffers(1, &this->n_plane->ebo);
+
+	glBindVertexArray(this->n_plane->vao);
+
+	// Position attribute
+	glBindBuffer(GL_ARRAY_BUFFER, this->n_plane->vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	// Normal attribute
+	glBindBuffer(GL_ARRAY_BUFFER, this->n_plane->vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(normal), normal, GL_STATIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(1);
+
+	// Texture Coordinate attribute
+	glBindBuffer(GL_ARRAY_BUFFER, this->n_plane->vbo[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coordinate), texture_coordinate, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(2);
+
+	//Element attribute
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->n_plane->ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(element), element, GL_STATIC_DRAW);
+
+	// Unbind VAO
+	glBindVertexArray(0);
+
+	if (!this->planeTexture)
+		this->planeTexture = new Texture2D(PROJECT_DIR "/Images/tiles.jpg");
 }
 
 void TrainView::
@@ -1234,8 +1314,8 @@ drawTiles(glm::vec4 plane, bool reflection)
 	model_matrix = glm::translate(model_matrix, this->source_pos);
 	model_matrix = glm::scale(model_matrix, glm::vec3(100.0f, 100.0f, 100.0f));
 
-	if (reflection)
-		model_matrix = glm::scale(model_matrix, glm::vec3(1, -1, 1));
+	//if (reflection)
+	//	model_matrix = glm::scale(model_matrix, glm::vec3(1, 1, 1));
 
 	glm::mat4 view_matrix;
 	glm::mat4 projection_matrix;
@@ -1243,8 +1323,8 @@ drawTiles(glm::vec4 plane, bool reflection)
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view_matrix[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection_matrix[0][0]);
 
-	glUniformMatrix4fv(glGetUniformLocation(this->skyboxShader->Program, "view"), 1, GL_FALSE, &view_matrix[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(this->skyboxShader->Program, "projection"), 1, GL_FALSE, &projection_matrix[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(this->tilesShader->Program, "view"), 1, GL_FALSE, &view_matrix[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(this->tilesShader->Program, "projection"), 1, GL_FALSE, &projection_matrix[0][0]);
 
 	glUniformMatrix4fv(
 		glGetUniformLocation(this->tilesShader->Program, "u_model"), 1, GL_FALSE, &model_matrix[0][0]);
@@ -1290,35 +1370,49 @@ drawSineWave(bool reflection)
 	glUniform1f(glGetUniformLocation(this->sineWaveShader->Program, ("wavelength")), tw->waveLength->value());
 	glUniform1f(glGetUniformLocation(this->sineWaveShader->Program, ("speed")), 1.0f);
 	glUniform1f(glGetUniformLocation(this->sineWaveShader->Program, ("time")), t_time);
-	this->sineWaveTexture->bind(0);
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "u_texture"), 0);
+	//this->sineWaveTexture->bind(0);
+	//glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "u_texture"), 0);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getReflectionTexture());
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "reflectionTexture"), 1);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "skybox"), 0);
 
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getRefractionTexture());
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "refractionTexture"), 2);
+	this->tilesTexture->bind(1);
+	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "tiles"), 1);
 
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getRefractionDepthTexture());
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "depthMap"), 3);
 
-	this->dudvTexture->bind(4);
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "dudvMap"), 4);
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getReflectionTexture());
+	//glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "reflectionTexture"), 1);
+	//
+	//glActiveTexture(GL_TEXTURE2);
+	//glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getRefractionTexture());
+	//glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "refractionTexture"), 2);
+	//
+	//glActiveTexture(GL_TEXTURE3);
+	//glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getRefractionDepthTexture());
+	//glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "depthMap"), 3);
 
-	this->normalMap->bind(5);
-	glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "normalMap"), 5);
+	//this->dudvTexture->bind(4);
+	//glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "dudvMap"), 4);
+	//
+	//this->normalMap->bind(5);
+	//glUniform1i(glGetUniformLocation(this->sineWaveShader->Program, "normalMap"), 5);
 
 	this->moveFactor += this->WAVE_SPEED * t_time;
 	this->moveFactor /= 1.0f;
 	glUniform1f(glGetUniformLocation(this->sineWaveShader->Program, "moveFactor"), moveFactor);
 
-	this->cameraPosition = arcball.getPosition();
-	glUniform3fv(glGetUniformLocation(this->sineWaveShader->Program, "cameraPosition"), 1, &glm::vec3(cameraPosition)[0]);
+	GLfloat* view_matrix = new GLfloat[16];
 
-	this->lightColor = glm::vec3(0.5f, 0.5f, .1f);
+	glGetFloatv(GL_MODELVIEW_MATRIX, view_matrix);
+
+	view_matrix = inverse(view_matrix);
+
+	this->cameraPosition = glm::vec3(view_matrix[12], view_matrix[13], view_matrix[14]);
+	glUniform3fv(glGetUniformLocation(this->sineWaveShader->Program, "cameraPos"), 1, &glm::vec3(cameraPosition)[0]);
+
+	this->lightColor = glm::vec3(0.5f, 0.5f, 0.1f);
 	glUniform3fv(glGetUniformLocation(this->sineWaveShader->Program, "lightColor"), 1, &glm::vec3(lightColor)[0]);
 
 	this->lightPosition = glm::vec3(50.0f, 200.0f, 50.0f);
@@ -1368,10 +1462,16 @@ drawHeightMapWave()
 	glUniform1f(glGetUniformLocation(this->heightMapShader->Program, "amplitude"), tw->amplitude->value());
 	glUniform1f(glGetUniformLocation(this->heightMapShader->Program, "wavelength"), tw->waveLength->value());
 	
-	glUniform1f(glGetUniformLocation(this->sineWaveShader->Program, "time"), t_time);
+	glUniform1f(glGetUniformLocation(this->heightMapShader->Program, "time"), t_time);
 
-	glm::vec3 camera = arcball.getPosition();
-	glUniform3fv(glGetUniformLocation(this->heightMapShader->Program, "camera"), 1, &camera[0]);
+	GLfloat* view_matrix = new GLfloat[16];
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, view_matrix);
+
+	view_matrix = inverse(view_matrix);
+
+	this->cameraPosition = glm::vec3(view_matrix[12], view_matrix[13], view_matrix[14]);
+	glUniform3fv(glGetUniformLocation(this->heightMapShader->Program, "camera"), 1, &cameraPosition[0]);
 
 	//bind VAO
 	glBindVertexArray(this->heightMap->vao);
@@ -1443,4 +1543,182 @@ addDrop(float radius, float keepTime)
 
 	if (uv.b != 1.0f)
 		allDrop.push_back(Drop(glm::vec2(uv.x, uv.y), this->t_time, radius, keepTime));
+}
+
+void TrainView::
+drawPlane()
+{
+	this->planeShader->Use();
+
+	glm::mat4 model_matrix = glm::mat4();
+	model_matrix = glm::translate(model_matrix, this->source_pos);
+	model_matrix = glm::scale(model_matrix, glm::vec3(100.0f, 100.0f, 100.0f));
+
+	glm::mat4 view_matrix;
+	glm::mat4 projection_matrix;
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view_matrix[0][0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection_matrix[0][0]);
+
+	glUniformMatrix4fv(glGetUniformLocation(this->planeShader->Program, "view"), 1, GL_FALSE, &view_matrix[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(this->planeShader->Program, "projection"), 1, GL_FALSE, &projection_matrix[0][0]);
+
+	glUniformMatrix4fv(
+		glGetUniformLocation(this->planeShader->Program, "u_model"), 1, GL_FALSE, &model_matrix[0][0]);
+	glUniform3fv(
+		glGetUniformLocation(this->planeShader->Program, "u_color"),
+		1,
+		&glm::vec3(0.0f, 1.0f, 0.0f)[0]);
+
+	//this->planeTexture->bind(0);
+	//glUniform1i(glGetUniformLocation(this->planeShader->Program, "u_texture"), 0);
+	//glUniform4fv(glGetUniformLocation(this->planeShader->Program, "plane"), 1, &plane[0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, this->waterFrameBuffers->getReflectionTexture());
+	glUniform1i(glGetUniformLocation(this->planeShader->Program, "u_texture"), 0);
+
+	//bind VAO
+	glBindVertexArray(this->n_plane->vao);
+
+	glDrawElements(GL_TRIANGLES, this->n_plane->element_amount, GL_UNSIGNED_INT, 0);
+
+	//unbind VAO
+	glBindVertexArray(0);
+
+	//unbind shader(switch to fixed pipeline)
+	glUseProgram(0);
+}
+
+GLfloat* TrainView::
+inverse(GLfloat* m)
+{
+	GLfloat* inv = new GLfloat[16]();
+	float det;
+
+	int i;
+
+	inv[0] = m[5] * m[10] * m[15] -
+		m[5] * m[11] * m[14] -
+		m[9] * m[6] * m[15] +
+		m[9] * m[7] * m[14] +
+		m[13] * m[6] * m[11] -
+		m[13] * m[7] * m[10];
+
+	inv[4] = -m[4] * m[10] * m[15] +
+		m[4] * m[11] * m[14] +
+		m[8] * m[6] * m[15] -
+		m[8] * m[7] * m[14] -
+		m[12] * m[6] * m[11] +
+		m[12] * m[7] * m[10];
+
+	inv[8] = m[4] * m[9] * m[15] -
+		m[4] * m[11] * m[13] -
+		m[8] * m[5] * m[15] +
+		m[8] * m[7] * m[13] +
+		m[12] * m[5] * m[11] -
+		m[12] * m[7] * m[9];
+
+	inv[12] = -m[4] * m[9] * m[14] +
+		m[4] * m[10] * m[13] +
+		m[8] * m[5] * m[14] -
+		m[8] * m[6] * m[13] -
+		m[12] * m[5] * m[10] +
+		m[12] * m[6] * m[9];
+
+	inv[1] = -m[1] * m[10] * m[15] +
+		m[1] * m[11] * m[14] +
+		m[9] * m[2] * m[15] -
+		m[9] * m[3] * m[14] -
+		m[13] * m[2] * m[11] +
+		m[13] * m[3] * m[10];
+
+	inv[5] = m[0] * m[10] * m[15] -
+		m[0] * m[11] * m[14] -
+		m[8] * m[2] * m[15] +
+		m[8] * m[3] * m[14] +
+		m[12] * m[2] * m[11] -
+		m[12] * m[3] * m[10];
+
+	inv[9] = -m[0] * m[9] * m[15] +
+		m[0] * m[11] * m[13] +
+		m[8] * m[1] * m[15] -
+		m[8] * m[3] * m[13] -
+		m[12] * m[1] * m[11] +
+		m[12] * m[3] * m[9];
+
+	inv[13] = m[0] * m[9] * m[14] -
+		m[0] * m[10] * m[13] -
+		m[8] * m[1] * m[14] +
+		m[8] * m[2] * m[13] +
+		m[12] * m[1] * m[10] -
+		m[12] * m[2] * m[9];
+
+	inv[2] = m[1] * m[6] * m[15] -
+		m[1] * m[7] * m[14] -
+		m[5] * m[2] * m[15] +
+		m[5] * m[3] * m[14] +
+		m[13] * m[2] * m[7] -
+		m[13] * m[3] * m[6];
+
+	inv[6] = -m[0] * m[6] * m[15] +
+		m[0] * m[7] * m[14] +
+		m[4] * m[2] * m[15] -
+		m[4] * m[3] * m[14] -
+		m[12] * m[2] * m[7] +
+		m[12] * m[3] * m[6];
+
+	inv[10] = m[0] * m[5] * m[15] -
+		m[0] * m[7] * m[13] -
+		m[4] * m[1] * m[15] +
+		m[4] * m[3] * m[13] +
+		m[12] * m[1] * m[7] -
+		m[12] * m[3] * m[5];
+
+	inv[14] = -m[0] * m[5] * m[14] +
+		m[0] * m[6] * m[13] +
+		m[4] * m[1] * m[14] -
+		m[4] * m[2] * m[13] -
+		m[12] * m[1] * m[6] +
+		m[12] * m[2] * m[5];
+
+	inv[3] = -m[1] * m[6] * m[11] +
+		m[1] * m[7] * m[10] +
+		m[5] * m[2] * m[11] -
+		m[5] * m[3] * m[10] -
+		m[9] * m[2] * m[7] +
+		m[9] * m[3] * m[6];
+
+	inv[7] = m[0] * m[6] * m[11] -
+		m[0] * m[7] * m[10] -
+		m[4] * m[2] * m[11] +
+		m[4] * m[3] * m[10] +
+		m[8] * m[2] * m[7] -
+		m[8] * m[3] * m[6];
+
+	inv[11] = -m[0] * m[5] * m[11] +
+		m[0] * m[7] * m[9] +
+		m[4] * m[1] * m[11] -
+		m[4] * m[3] * m[9] -
+		m[8] * m[1] * m[7] +
+		m[8] * m[3] * m[5];
+
+	inv[15] = m[0] * m[5] * m[10] -
+		m[0] * m[6] * m[9] -
+		m[4] * m[1] * m[10] +
+		m[4] * m[2] * m[9] +
+		m[8] * m[1] * m[6] -
+		m[8] * m[2] * m[5];
+
+	det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+	if (det == 0)
+		return false;
+
+	det = 1.0 / det;
+
+	for (i = 0; i < 16; i++)
+		inv[i] = inv[i] * det;
+
+	return inv;
 }

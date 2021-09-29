@@ -33,12 +33,13 @@ out V_OUT
    vec3 position;
    vec3 normal;
    vec2 texture_coordinate;
+   vec4 clipSpace;
 } v_out;
 
 void main()
 {
     vec3 heightMap = position;
-    float tempHeight = (texture(u_texture, v_out.texture_coordinate / wavelength).r - 0.5f) * amplitude;
+    float tempHeight = (texture(u_texture, texture_coordinate / 200).r - 0.5f) * amplitude;
     float tempInteractive = 0.0f;
     if(dropPoint.x > 0.0f)
     {        
@@ -52,6 +53,8 @@ void main()
     else
         heightMap.y += (abs(tempHeight) > abs(tempInteractive)) ? tempHeight : tempInteractive;
     
+    vec4 worldPosition = u_model * vec4(position, 1.0f);
+    v_out.clipSpace = u_projection * u_view * worldPosition;
     gl_Position = u_projection * u_view * u_model * vec4(heightMap, 1.0f);
     
     v_out.position = vec3(u_model * vec4(heightMap, 1.0f));

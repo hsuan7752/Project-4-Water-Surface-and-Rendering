@@ -16,6 +16,7 @@ in V_OUT
    vec3 position;
    vec3 normal;
    vec2 texture_coordinate;
+   vec4 clipSpace;
 } f_in;
 
 uniform vec3 u_color;
@@ -85,15 +86,23 @@ void main()
 {   
     vec3 normal = normalize(cross(dFdy(f_in.position), dFdx(f_in.position)));
     
-    vec3 I = normalize(f_in.position - camera.xyz);
+	vec2 ndc = (f_in.clipSpace.xy / f_in.clipSpace.w) / 2.0f + 0.5f;
+    vec2 refractTexCoords = vec2(ndc.x, ndc.y);
+
+    vec3 I = normalize(f_in.position - camera);
     vec3 reflectionVector = reflect(I, normalize(normal));
     vec3 refractionVector = refract(I, -normalize(normal), Eta);
     
-    vec3 reflectionColor = vec3(textureCube(skyBox, reflectionVector));
-    vec3 refractionColor = getSurfaceRayColor(vec3(f_in.texture_coordinate.x * 2.0f / 20000 - 1.0f, 0.0f, f_in.texture_coordinate.y * 2.0f / 20000 - 1.0f), refractionVector, vec3(1.0f)) * vec3(0.0f, 0.8f, 1.0f);
-	
+    vec3 reflectionColor = vec3(texture(skyBox, reflectionVector));
+    vec3 refractionColor = getSurfaceRayColor(vec3(refractTexCoords.y, 0.0, refractTexCoords.x), refractionVector, vec3(1.0f)) * vec3(0.0f, 0.8f, 1.0f);
+
     if(f_in.normal.y > 0)
 		f_color = vec4(mix(reflectionColor, refractionColor, ratio_of_reflection_and_refraction), 1.0f);
 	else
 		f_color = vec4(refractionColor, 1.0f);
+
+	//f_color = vec4(texture(skyBox, reflectionVector).rgb, 1.0);
+	//f_color = vec4(refractionColor, 1.0f);
+
+	//f_color = vec4(abs(normal), 1.0f);
 }
